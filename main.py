@@ -2,6 +2,7 @@ from drafter import *
 from dataclasses import dataclass
 from random import randint, choice
 from time import time
+from bakery import assert_equal
 
 @dataclass
 class MathProblem:
@@ -16,6 +17,7 @@ class MathProblem:
 
 @dataclass
 class State:
+    name: str
     current_page: str
     first_number: int
     second_number: int
@@ -36,20 +38,21 @@ set_site_information(
     author="Danielle Hannold",
     description="Practice your basic math skills!",
     sources="Thanks to the Drafter docs and my study group.",
-    planning=["plan.pdf", "design.pdf"],
-    links=["https://github.com/your-username/your-repository"]
+    planning=["project_design.pdf", "project_pick.pdf"],
+    links=["https://github.com/dhannold/math-quiz/blob/main/project_design.pdf", "https://github.com/dhannold/math-quiz/blob/main/project_pick.pdf"]
 )
 hide_debug_information()
 set_website_framed(False)
 
-def make_question(state: State):
+def make_question(state: State) -> None:
+    """Creates a random math question and updates the state.
 
+    Random number generation makes exact output difficult to test.
+    """
     mode = state.practice_mode
 
     if mode == "combination":
         operation = choice(["+", "-", "*", "/"])
-    elif mode == "long_division":
-        operation = "/"
     elif mode == "whole_division":
         operation = "/"
     else:
@@ -85,7 +88,9 @@ def make_question(state: State):
 
 @route
 def index(state: State) -> Page:
-
+    """
+    Displays the home page and practice choices.
+    """
     state.current_page = "home"
 
     return Page(state, [
@@ -100,13 +105,17 @@ def index(state: State) -> Page:
 
 
 def setup_page(state: State, operation: str) -> Page:
-
+    """
+    Displays the setup page for the selected operation.
+    """
     state.practice_mode = operation
     state.operation = operation
     state.current_page = "setup"
 
     return Page(state, [
         Header("Math Practice Setup"),
+        "What is your name?",
+        TextBox("name"),
         "Selected practice: " + operation,
         "How many seconds would you like to practice?",
         TextBox("time_limit", "60"),
@@ -117,33 +126,50 @@ def setup_page(state: State, operation: str) -> Page:
 
 @route
 def addition(state: State) -> Page:
+    """
+    Displays the setup page for addition practice.
+    """
     return setup_page(state, "+")
 
 
 @route
 def multiplication(state: State) -> Page:
+    """
+    Displays the setup page for multiplication practice.
+    """
     return setup_page(state, "*")
 
 
 @route
 def subtraction(state: State) -> Page:
+    """
+    Displays the setup page for subtraction practice.
+    """
     return setup_page(state, "-")
 
 
 @route
 def whole_division(state: State) -> Page:
+    """
+    Displays the setup page for whole number division practice.
+    """
     return setup_page(state, "/")
 
 @route
 def combination(state: State) -> Page:
+    """
+    Displays the setup page for mixed operation practice.
+    """
     return setup_page(state, "combination")
     
 @route
-def start_practice(state: State, time_limit: int) -> Page:
+def start_practice(state: State, time_limit: int, name: str) -> Page:
+    """Starts a practice session with the chosen settings."""
 
     if time_limit <= 0:
         return setup_page(state, state.operation)
 
+    state.name = name
     state.time_limit = time_limit
     state.score = 0
     state.questions_answered = 0
@@ -156,7 +182,9 @@ def start_practice(state: State, time_limit: int) -> Page:
 
 @route
 def practice(state: State) -> Page:
-
+    """
+    Displays the current question and practice progress.
+    """
     state.current_page = "practice"
 
     elapsed = int(time() - state.start_time)
@@ -175,6 +203,7 @@ def practice(state: State) -> Page:
 
     return Page(state, [
         Header("Math Practice"),
+        "Good luck, " + state.name + "!",
         "Time remaining: " + str(remaining) + " seconds",
         "Score: " + str(state.score),
         "Questions answered: " + str(state.questions_answered),
@@ -187,7 +216,9 @@ def practice(state: State) -> Page:
 
 @route
 def submit_answer(state: State, user_answer: str) -> Page:
-
+    """
+    Checks the user's answer and updates the score.
+    """
     current_time = time()
 
     elapsed = int(current_time - state.start_time)
@@ -235,11 +266,14 @@ def submit_answer(state: State, user_answer: str) -> Page:
 
 @route
 def results(state: State) -> Page:
-
+    """
+    Displays the final practice results.
+    """
     state.current_page = "results"
 
     return Page(state, [
         Header("Practice Complete!"),
+        "Great work, " + state.name + "!",
         Header("Your Results"),
         "Your score: " + str(state.score),
         "Questions answered: " + str(state.questions_answered),
@@ -252,7 +286,9 @@ def results(state: State) -> Page:
 
 @route
 def review(state: State) -> Page:
-
+    """
+    Displays the user's previous questions and answers.
+    """
     content = [
         Header("Answer Review"),
         "Here are all the questions you answered.",
@@ -295,6 +331,7 @@ def review(state: State) -> Page:
     return Page(state, content)
 
 initial_state = State(
+    name = "",
     current_page="home",
     first_number=0,
     second_number=0,
