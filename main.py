@@ -2,7 +2,6 @@ from drafter import *
 from dataclasses import dataclass
 from random import randint, choice
 from time import time
-from bakery import assert_equal
 
 @dataclass
 class MathProblem:
