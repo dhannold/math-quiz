@@ -38,8 +38,10 @@ set_site_information(
     author="Danielle Hannold",
     description="Practice your basic math skills!",
     sources="Thanks to the Drafter docs and my study group.",
-    planning=["project_design.pdf", "project_pick.pdf"],
-    links=["https://github.com/dhannold/math-quiz/blob/main/project_design.pdf", "https://github.com/dhannold/math-quiz/blob/main/project_pick.pdf"]
+    planning=["project_design.pdf", "project_pick.pdf", "chatgpt.pdf"],
+    links=["https://github.com/dhannold/math-quiz/blob/main/project_design.pdf",
+           "https://github.com/dhannold/math-quiz/blob/main/project_pick.pdf",
+           "https://github.com/dhannold/math-quiz/blob/main/chatgpt.pdf"]
 )
 hide_debug_information()
 set_website_framed(False)
@@ -47,7 +49,9 @@ set_website_framed(False)
 def make_question(state: State) -> None:
     """Creates a random math question and updates the state.
 
-    Random number generation makes exact output difficult to test.
+    Exact question values cannot be predicted because numbers
+    and operations are randomly selected, making exact-output
+    unit tests impractical.
     """
     mode = state.practice_mode
 
@@ -227,7 +231,7 @@ def submit_answer(state: State, user_answer: str) -> Page:
         return results(state)
 
     # Check whether the answer is a valid integer.
-    if not user_answer.strip().lstrip("-").isdigit():
+    if not user_answer.strip().lstrip("-").isdigit() or user_answer.strip().count("-") > 1:
         state.feedback = "Please enter a whole number."
         return practice(state)
 
@@ -347,5 +351,664 @@ initial_state = State(
     question_started_at=0.0,
     practice_mode="+"
 )
+# --------------------
+# Test index
+# --------------------
+
+assert_equal(index(State(
+    current_page="", name="Alex", first_number=0, second_number=0,
+    operation="+", correct_answer=0, user_answer="", feedback="",
+    score=0, questions_answered=0, problems=[], time_limit=60,
+    start_time=0.0, question_started_at=0.0, practice_mode="+"
+)).state.current_page, "home")
+
+assert_equal(index(State(
+    current_page="setup", name="Sam", first_number=2, second_number=3,
+    operation="*", correct_answer=6, user_answer="", feedback="",
+    score=5, questions_answered=5, problems=[], time_limit=60,
+    start_time=0.0, question_started_at=0.0, practice_mode="*"
+)).state.current_page, "home")
+
+assert_equal(index(State(
+    current_page="results", name="Taylor", first_number=4, second_number=2,
+    operation="-", correct_answer=2, user_answer="2", feedback="",
+    score=3, questions_answered=4, problems=[], time_limit=30,
+    start_time=0.0, question_started_at=0.0, practice_mode="-"
+)).state.current_page, "home")
+
+
+# --------------------
+# Test setup_page
+# --------------------
+
+assert_equal(setup_page(State(
+    current_page="home", name="Alex", first_number=0, second_number=0,
+    operation="+", correct_answer=0, user_answer="", feedback="",
+    score=0, questions_answered=0, problems=[], time_limit=60,
+    start_time=0.0, question_started_at=0.0, practice_mode="+"
+), "+").state.practice_mode, "+")
+
+assert_equal(setup_page(State(
+    current_page="home", name="Alex", first_number=0, second_number=0,
+    operation="+", correct_answer=0, user_answer="", feedback="",
+    score=0, questions_answered=0, problems=[], time_limit=60,
+    start_time=0.0, question_started_at=0.0, practice_mode="+"
+), "*").state.operation, "*")
+
+assert_equal(setup_page(State(
+    current_page="home", name="Alex", first_number=0, second_number=0,
+    operation="+", correct_answer=0, user_answer="", feedback="",
+    score=0, questions_answered=0, problems=[], time_limit=60,
+    start_time=0.0, question_started_at=0.0, practice_mode="+"
+), "-").state.current_page, "setup")
+
+
+# --------------------
+# Test addition
+# --------------------
+
+assert_equal(addition(State(
+    current_page="home", name="Alex", first_number=0, second_number=0,
+    operation="", correct_answer=0, user_answer="", feedback="",
+    score=0, questions_answered=0, problems=[], time_limit=60,
+    start_time=0.0, question_started_at=0.0, practice_mode=""
+)).state.practice_mode, "+")
+
+assert_equal(addition(State(
+    current_page="home", name="Sam", first_number=0, second_number=0,
+    operation="", correct_answer=0, user_answer="", feedback="",
+    score=0, questions_answered=0, problems=[], time_limit=60,
+    start_time=0.0, question_started_at=0.0, practice_mode=""
+)).state.current_page, "setup")
+
+assert_equal(addition(State(
+    current_page="results", name="Taylor", first_number=0, second_number=0,
+    operation="", correct_answer=0, user_answer="", feedback="",
+    score=5, questions_answered=5, problems=[], time_limit=30,
+    start_time=0.0, question_started_at=0.0, practice_mode=""
+)).state.operation, "+")
+
+
+# --------------------
+# Test multiplication
+# --------------------
+
+assert_equal(multiplication(State(
+    current_page="home", name="Alex", first_number=0, second_number=0,
+    operation="", correct_answer=0, user_answer="", feedback="",
+    score=0, questions_answered=0, problems=[], time_limit=60,
+    start_time=0.0, question_started_at=0.0, practice_mode=""
+)).state.practice_mode, "*")
+
+assert_equal(multiplication(State(
+    current_page="home", name="Sam", first_number=0, second_number=0,
+    operation="", correct_answer=0, user_answer="", feedback="",
+    score=0, questions_answered=0, problems=[], time_limit=60,
+    start_time=0.0, question_started_at=0.0, practice_mode=""
+)).state.current_page, "setup")
+
+assert_equal(multiplication(State(
+    current_page="results", name="Taylor", first_number=0, second_number=0,
+    operation="", correct_answer=0, user_answer="", feedback="",
+    score=5, questions_answered=5, problems=[], time_limit=30,
+    start_time=0.0, question_started_at=0.0, practice_mode=""
+)).state.operation, "*")
+
+
+# --------------------
+# Test subtraction
+# --------------------
+
+assert_equal(subtraction(State(
+    current_page="home", name="Alex", first_number=0, second_number=0,
+    operation="", correct_answer=0, user_answer="", feedback="",
+    score=0, questions_answered=0, problems=[], time_limit=60,
+    start_time=0.0, question_started_at=0.0, practice_mode=""
+)).state.practice_mode, "-")
+
+assert_equal(subtraction(State(
+    current_page="home", name="Sam", first_number=0, second_number=0,
+    operation="", correct_answer=0, user_answer="", feedback="",
+    score=0, questions_answered=0, problems=[], time_limit=60,
+    start_time=0.0, question_started_at=0.0, practice_mode=""
+)).state.current_page, "setup")
+
+assert_equal(subtraction(State(
+    current_page="results", name="Taylor", first_number=0, second_number=0,
+    operation="", correct_answer=0, user_answer="", feedback="",
+    score=5, questions_answered=5, problems=[], time_limit=30,
+    start_time=0.0, question_started_at=0.0, practice_mode=""
+)).state.operation, "-")
+
+
+# --------------------
+# Test whole_division
+# --------------------
+
+assert_equal(whole_division(State(
+    current_page="home", name="Alex", first_number=0, second_number=0,
+    operation="", correct_answer=0, user_answer="", feedback="",
+    score=0, questions_answered=0, problems=[], time_limit=60,
+    start_time=0.0, question_started_at=0.0, practice_mode=""
+)).state.practice_mode, "/")
+
+assert_equal(whole_division(State(
+    current_page="home", name="Sam", first_number=0, second_number=0,
+    operation="", correct_answer=0, user_answer="", feedback="",
+    score=0, questions_answered=0, problems=[], time_limit=60,
+    start_time=0.0, question_started_at=0.0, practice_mode=""
+)).state.current_page, "setup")
+
+assert_equal(whole_division(State(
+    current_page="results", name="Taylor", first_number=0, second_number=0,
+    operation="", correct_answer=0, user_answer="", feedback="",
+    score=5, questions_answered=5, problems=[], time_limit=30,
+    start_time=0.0, question_started_at=0.0, practice_mode=""
+)).state.operation, "/")
+
+
+# --------------------
+# Test combination
+# --------------------
+
+assert_equal(combination(State(
+    current_page="home", name="Alex", first_number=0, second_number=0,
+    operation="", correct_answer=0, user_answer="", feedback="",
+    score=0, questions_answered=0, problems=[], time_limit=60,
+    start_time=0.0, question_started_at=0.0, practice_mode=""
+)).state.practice_mode, "combination")
+
+assert_equal(combination(State(
+    current_page="home", name="Sam", first_number=0, second_number=0,
+    operation="", correct_answer=0, user_answer="", feedback="",
+    score=0, questions_answered=0, problems=[], time_limit=60,
+    start_time=0.0, question_started_at=0.0, practice_mode=""
+)).state.current_page, "setup")
+
+assert_equal(combination(State(
+    current_page="results", name="Taylor", first_number=0, second_number=0,
+    operation="", correct_answer=0, user_answer="", feedback="",
+    score=5, questions_answered=5, problems=[], time_limit=30,
+    start_time=0.0, question_started_at=0.0, practice_mode=""
+)).state.operation, "combination")
+
+
+# --------------------
+# Test start_practice
+# --------------------
+
+assert_equal(start_practice(State(
+    current_page="setup", name="", first_number=0, second_number=0,
+    operation="+", correct_answer=0, user_answer="", feedback="",
+    score=5, questions_answered=5, problems=[], time_limit=60,
+    start_time=0.0, question_started_at=0.0, practice_mode="+"
+), 60, "Alex").state.name, "Alex")
+
+assert_equal(start_practice(State(
+    current_page="setup", name="", first_number=0, second_number=0,
+    operation="*", correct_answer=0, user_answer="", feedback="",
+    score=5, questions_answered=5, problems=[], time_limit=60,
+    start_time=0.0, question_started_at=0.0, practice_mode="*"
+), 30, "Sam").state.score, 0)
+
+assert_equal(start_practice(State(
+    current_page="setup", name="", first_number=0, second_number=0,
+    operation="-", correct_answer=0, user_answer="", feedback="",
+    score=5, questions_answered=5, problems=[], time_limit=60,
+    start_time=0.0, question_started_at=0.0, practice_mode="-"
+), 0, "Taylor").state.current_page, "setup")
+
+# Tests whether the selected name is saved.
+assert_equal(start_practice(State(
+    current_page="setup", name="", first_number=0, second_number=0,
+    operation="+", correct_answer=0, user_answer="", feedback="",
+    score=0, questions_answered=0, problems=[], time_limit=60,
+    start_time=0.0, question_started_at=0.0, practice_mode="+"
+), 45, "Jordan").state.name, "Jordan")
+
+# Tests whether the selected time limit is saved.
+assert_equal(start_practice(State(
+    current_page="setup", name="", first_number=0, second_number=0,
+    operation="*", correct_answer=0, user_answer="", feedback="",
+    score=0, questions_answered=0, problems=[], time_limit=60,
+    start_time=0.0, question_started_at=0.0, practice_mode="*"
+), 90, "Morgan").state.time_limit, 90)
+
+# Tests whether the number of questions answered is reset.
+assert_equal(start_practice(State(
+    current_page="setup", name="", first_number=0, second_number=0,
+    operation="-", correct_answer=0, user_answer="", feedback="",
+    score=5, questions_answered=8, problems=[], time_limit=60,
+    start_time=0.0, question_started_at=0.0, practice_mode="-"
+), 30, "Riley").state.questions_answered, 0)
+
+# Tests whether previous problems are cleared.
+assert_equal(start_practice(State(
+    current_page="setup", name="", first_number=0, second_number=0,
+    operation="+", correct_answer=0, user_answer="", feedback="",
+    score=5, questions_answered=1,
+    problems=[MathProblem(2, 3, "+", 5, "5", True, 2)],
+    time_limit=60, start_time=0.0, question_started_at=0.0,
+    practice_mode="+"
+), 30, "Casey").state.problems, [])
+
+# Tests whether a negative time limit is rejected.
+assert_equal(start_practice(State(
+    current_page="setup", name="", first_number=0, second_number=0,
+    operation="+", correct_answer=0, user_answer="", feedback="",
+    score=0, questions_answered=0, problems=[], time_limit=60,
+    start_time=0.0, question_started_at=0.0, practice_mode="+"
+), -10, "Alex").state.current_page, "setup")
+
+
+# --------------------
+# Test practice
+# --------------------
+
+assert_equal(practice(State(
+    current_page="practice", name="Alex", first_number=2, second_number=3,
+    operation="+", correct_answer=5, user_answer="", feedback="",
+    score=0, questions_answered=0, problems=[], time_limit=60,
+    start_time=time(), question_started_at=time(), practice_mode="+"
+)).state.current_page, "practice")
+
+assert_equal(practice(State(
+    current_page="practice", name="Sam", first_number=4, second_number=2,
+    operation="*", correct_answer=8, user_answer="", feedback="",
+    score=2, questions_answered=3, problems=[], time_limit=60,
+    start_time=time(), question_started_at=time(), practice_mode="*"
+)).state.score, 2)
+
+assert_equal(practice(State(
+    current_page="practice", name="Taylor", first_number=4, second_number=2,
+    operation="-", correct_answer=2, user_answer="", feedback="",
+    score=2, questions_answered=3, problems=[], time_limit=1,
+    start_time=0.0, question_started_at=0.0, practice_mode="-"
+)).state.current_page, "results")
+
+# Tests whether the user's name is preserved.
+assert_equal(practice(State(
+    current_page="practice", name="Jordan", first_number=2,
+    second_number=3, operation="+", correct_answer=5,
+    user_answer="", feedback="", score=2, questions_answered=3,
+    problems=[], time_limit=60, start_time=time(),
+    question_started_at=time(), practice_mode="+"
+)).state.name, "Jordan")
+
+# Tests whether the score remains unchanged when displaying the page.
+assert_equal(practice(State(
+    current_page="practice", name="Morgan", first_number=4,
+    second_number=5, operation="*", correct_answer=20,
+    user_answer="", feedback="", score=4, questions_answered=6,
+    problems=[], time_limit=60, start_time=time(),
+    question_started_at=time(), practice_mode="*"
+)).state.score, 4)
+
+# Tests whether the number of answered questions remains unchanged.
+assert_equal(practice(State(
+    current_page="practice", name="Riley", first_number=8,
+    second_number=3, operation="-", correct_answer=5,
+    user_answer="", feedback="", score=2, questions_answered=7,
+    problems=[], time_limit=60, start_time=time(),
+    question_started_at=time(), practice_mode="-"
+)).state.questions_answered, 7)
+
+# Tests whether an expired practice session displays the results page.
+assert_equal(practice(State(
+    current_page="practice", name="Casey", first_number=8,
+    second_number=4, operation="/", correct_answer=2,
+    user_answer="", feedback="", score=3, questions_answered=5,
+    problems=[], time_limit=1, start_time=0.0,
+    question_started_at=0.0, practice_mode="/"
+)).state.current_page, "results")
+
+
+# --------------------
+# Test submit_answer
+# --------------------
+
+assert_equal(submit_answer(State(
+    current_page="practice", name="Alex", first_number=3, second_number=4,
+    operation="+", correct_answer=7, user_answer="", feedback="",
+    score=0, questions_answered=0, problems=[], time_limit=60,
+    start_time=time(), question_started_at=time(), practice_mode="+"
+), "7").state.score, 1)
+
+assert_equal(submit_answer(State(
+    current_page="practice", name="Sam", first_number=3, second_number=4,
+    operation="+", correct_answer=7, user_answer="", feedback="",
+    score=0, questions_answered=0, problems=[], time_limit=60,
+    start_time=time(), question_started_at=time(), practice_mode="+"
+), "9").state.questions_answered, 1)
+
+assert_equal(submit_answer(State(
+    current_page="practice", name="Taylor", first_number=3, second_number=4,
+    operation="+", correct_answer=7, user_answer="", feedback="",
+    score=0, questions_answered=0, problems=[], time_limit=60,
+    start_time=time(), question_started_at=time(), practice_mode="+"
+), "hello").state.questions_answered, 0)
+
+# Tests whether an incorrect answer leaves the score unchanged.
+assert_equal(submit_answer(State(
+    current_page="practice", name="Alex", first_number=3,
+    second_number=4, operation="+", correct_answer=7,
+    user_answer="", feedback="", score=2, questions_answered=2,
+    problems=[], time_limit=60, start_time=time(),
+    question_started_at=time(), practice_mode="+"
+), "9").state.score, 2)
+
+# Tests whether a correct answer increases an existing score.
+assert_equal(submit_answer(State(
+    current_page="practice", name="Jordan", first_number=5,
+    second_number=5, operation="*", correct_answer=25,
+    user_answer="", feedback="", score=3, questions_answered=3,
+    problems=[], time_limit=60, start_time=time(),
+    question_started_at=time(), practice_mode="*"
+), "25").state.score, 4)
+
+# Tests whether a valid incorrect answer still increases the question count.
+assert_equal(submit_answer(State(
+    current_page="practice", name="Morgan", first_number=9,
+    second_number=3, operation="-", correct_answer=6,
+    user_answer="", feedback="", score=0, questions_answered=4,
+    problems=[], time_limit=60, start_time=time(),
+    question_started_at=time(), practice_mode="-"
+), "5").state.questions_answered, 5)
+
+# Tests whether a negative integer is accepted.
+assert_equal(submit_answer(State(
+    current_page="practice", name="Alex", first_number=3,
+    second_number=5, operation="-", correct_answer=-2,
+    user_answer="", feedback="", score=0, questions_answered=0,
+    problems=[], time_limit=60, start_time=time(),
+    question_started_at=time(), practice_mode="-"
+), "-2").state.score, 1)
+
+# Tests whether an answer containing surrounding spaces is accepted.
+assert_equal(submit_answer(State(
+    current_page="practice", name="Jordan", first_number=3,
+    second_number=4, operation="+", correct_answer=7,
+    user_answer="", feedback="", score=0, questions_answered=0,
+    problems=[], time_limit=60, start_time=time(),
+    question_started_at=time(), practice_mode="+"
+), " 7 ").state.score, 1)
+
+# Tests whether a decimal answer is rejected.
+assert_equal(submit_answer(State(
+    current_page="practice", name="Morgan", first_number=3,
+    second_number=4, operation="+", correct_answer=7,
+    user_answer="", feedback="", score=0, questions_answered=0,
+    problems=[], time_limit=60, start_time=time(),
+    question_started_at=time(), practice_mode="+"
+), "7.5").state.questions_answered, 0)
+
+# Tests whether an empty answer is rejected.
+assert_equal(submit_answer(State(
+    current_page="practice", name="Riley", first_number=3,
+    second_number=4, operation="+", correct_answer=7,
+    user_answer="", feedback="", score=0, questions_answered=0,
+    problems=[], time_limit=60, start_time=time(),
+    question_started_at=time(), practice_mode="+"
+), "").state.questions_answered, 0)
+
+# Tests whether an answer containing only spaces is rejected.
+assert_equal(submit_answer(State(
+    current_page="practice", name="Casey", first_number=3,
+    second_number=4, operation="+", correct_answer=7,
+    user_answer="", feedback="", score=0, questions_answered=0,
+    problems=[], time_limit=60, start_time=time(),
+    question_started_at=time(), practice_mode="+"
+), "   ").state.questions_answered, 0)
+
+# Tests whether alphabetic input is rejected.
+assert_equal(submit_answer(State(
+    current_page="practice", name="Taylor", first_number=3,
+    second_number=4, operation="+", correct_answer=7,
+    user_answer="", feedback="", score=0, questions_answered=0,
+    problems=[], time_limit=60, start_time=time(),
+    question_started_at=time(), practice_mode="+"
+), "hello").state.questions_answered, 0)
+
+# Tests the feedback message after a correct answer.
+assert_equal(submit_answer(State(
+    current_page="practice", name="Alex", first_number=3,
+    second_number=4, operation="+", correct_answer=7,
+    user_answer="", feedback="", score=0, questions_answered=0,
+    problems=[], time_limit=60, start_time=time(),
+    question_started_at=time(), practice_mode="+"
+), "7").state.feedback, "Correct! Great job!")
+
+# Tests the feedback message after an incorrect answer.
+assert_equal(submit_answer(State(
+    current_page="practice", name="Jordan", first_number=3,
+    second_number=4, operation="+", correct_answer=7,
+    user_answer="", feedback="", score=0, questions_answered=0,
+    problems=[], time_limit=60, start_time=time(),
+    question_started_at=time(), practice_mode="+"
+), "9").state.feedback, "Incorrect. The correct answer was 7")
+
+# Tests the feedback message after invalid input.
+assert_equal(submit_answer(State(
+    current_page="practice", name="Morgan", first_number=3,
+    second_number=4, operation="+", correct_answer=7,
+    user_answer="", feedback="", score=0, questions_answered=0,
+    problems=[], time_limit=60, start_time=time(),
+    question_started_at=time(), practice_mode="+"
+), "hello").state.feedback, "Please enter a whole number.")
+
+# Tests whether a correctly answered problem is saved.
+assert_equal(submit_answer(State(
+    current_page="practice", name="Alex", first_number=3,
+    second_number=4, operation="+", correct_answer=7,
+    user_answer="", feedback="", score=0, questions_answered=0,
+    problems=[], time_limit=60, start_time=time(),
+    question_started_at=time(), practice_mode="+"
+), "7").state.problems[0].was_correct, True)
+
+# Tests whether an incorrectly answered problem is saved.
+assert_equal(submit_answer(State(
+    current_page="practice", name="Jordan", first_number=8,
+    second_number=3, operation="-", correct_answer=5,
+    user_answer="", feedback="", score=0, questions_answered=0,
+    problems=[], time_limit=60, start_time=time(),
+    question_started_at=time(), practice_mode="-"
+), "6").state.problems[0].was_correct, False)
+
+# Tests whether the user's submitted answer is saved in the problem record.
+assert_equal(submit_answer(State(
+    current_page="practice", name="Morgan", first_number=5,
+    second_number=5, operation="*", correct_answer=25,
+    user_answer="", feedback="", score=0, questions_answered=0,
+    problems=[], time_limit=60, start_time=time(),
+    question_started_at=time(), practice_mode="*"
+), "20").state.problems[0].user_answer, "20")
+
+# Tests whether the original question's correct answer is saved.
+assert_equal(submit_answer(State(
+    current_page="practice", name="Riley", first_number=5,
+    second_number=5, operation="*", correct_answer=25,
+    user_answer="", feedback="", score=0, questions_answered=0,
+    problems=[], time_limit=60, start_time=time(),
+    question_started_at=time(), practice_mode="*"
+), "25").state.problems[0].correct_answer, 25)
+
+# Tests whether the original operation is saved.
+assert_equal(submit_answer(State(
+    current_page="practice", name="Casey", first_number=5,
+    second_number=5, operation="*", correct_answer=25,
+    user_answer="", feedback="", score=0, questions_answered=0,
+    problems=[], time_limit=60, start_time=time(),
+    question_started_at=time(), practice_mode="*"
+), "25").state.problems[0].operation, "*")
+
+# Tests whether an invalid answer is NOT saved as a completed problem.
+assert_equal(submit_answer(State(
+    current_page="practice", name="Taylor", first_number=3,
+    second_number=4, operation="+", correct_answer=7,
+    user_answer="", feedback="", score=0, questions_answered=0,
+    problems=[], time_limit=60, start_time=time(),
+    question_started_at=time(), practice_mode="+"
+), "hello").state.problems, [])
+
+# Tests whether submitting an answer after the time limit ends
+# sends the user to the results page.
+assert_equal(submit_answer(State(
+    current_page="practice", name="Alex", first_number=3,
+    second_number=4, operation="+", correct_answer=7,
+    user_answer="", feedback="", score=2, questions_answered=3,
+    problems=[], time_limit=1, start_time=0.0,
+    question_started_at=0.0, practice_mode="+"
+), "7").state.current_page, "results")
+
+# Tests whether an expired session does not increase the score.
+assert_equal(submit_answer(State(
+    current_page="practice", name="Jordan", first_number=3,
+    second_number=4, operation="+", correct_answer=7,
+    user_answer="", feedback="", score=2, questions_answered=3,
+    problems=[], time_limit=1, start_time=0.0,
+    question_started_at=0.0, practice_mode="+"
+), "7").state.score, 2)
+
+# Tests whether an expired session does not save another problem.
+assert_equal(submit_answer(State(
+    current_page="practice", name="Morgan", first_number=3,
+    second_number=4, operation="+", correct_answer=7,
+    user_answer="", feedback="", score=2, questions_answered=3,
+    problems=[], time_limit=1, start_time=0.0,
+    question_started_at=0.0, practice_mode="+"
+), "7").state.problems, [])
+
+# --------------------
+# Test results
+# --------------------
+
+assert_equal(results(State(
+    current_page="practice", name="Alex", first_number=0, second_number=0,
+    operation="+", correct_answer=0, user_answer="", feedback="",
+    score=5, questions_answered=5, problems=[], time_limit=60,
+    start_time=0.0, question_started_at=0.0, practice_mode="+"
+)).state.score, 5)
+
+assert_equal(results(State(
+    current_page="practice", name="Sam", first_number=0, second_number=0,
+    operation="*", correct_answer=0, user_answer="", feedback="",
+    score=3, questions_answered=4, problems=[], time_limit=60,
+    start_time=0.0, question_started_at=0.0, practice_mode="*"
+)).state.questions_answered, 4)
+
+assert_equal(results(State(
+    current_page="practice", name="Taylor", first_number=0, second_number=0,
+    operation="-", correct_answer=0, user_answer="", feedback="",
+    score=0, questions_answered=0, problems=[], time_limit=30,
+    start_time=0.0, question_started_at=0.0, practice_mode="-"
+)).state.current_page, "results")
+
+# --------------------
+# Additional results tests
+# --------------------
+
+# Tests a session where every answer was correct.
+assert_equal(results(State(
+    current_page="practice", name="Alex", first_number=0,
+    second_number=0, operation="+", correct_answer=0,
+    user_answer="", feedback="", score=5, questions_answered=5,
+    problems=[], time_limit=60, start_time=0.0,
+    question_started_at=0.0, practice_mode="+"
+)).state.score, 5)
+
+# Tests a session where every answer was incorrect.
+assert_equal(results(State(
+    current_page="practice", name="Jordan", first_number=0,
+    second_number=0, operation="+", correct_answer=0,
+    user_answer="", feedback="", score=0, questions_answered=5,
+    problems=[], time_limit=60, start_time=0.0,
+    question_started_at=0.0, practice_mode="+"
+)).state.score, 0)
+
+# Tests a session where no questions were answered.
+assert_equal(results(State(
+    current_page="practice", name="Morgan", first_number=0,
+    second_number=0, operation="+", correct_answer=0,
+    user_answer="", feedback="", score=0, questions_answered=0,
+    problems=[], time_limit=60, start_time=0.0,
+    question_started_at=0.0, practice_mode="+"
+)).state.questions_answered, 0)
+
+# Tests whether the user's name is preserved on the results page.
+assert_equal(results(State(
+    current_page="practice", name="Riley", first_number=0,
+    second_number=0, operation="+", correct_answer=0,
+    user_answer="", feedback="", score=3, questions_answered=5,
+    problems=[], time_limit=60, start_time=0.0,
+    question_started_at=0.0, practice_mode="+"
+)).state.name, "Riley")
+
+# --------------------
+# Test review
+# --------------------
+
+assert_equal(review(State(
+    current_page="results", name="Alex", first_number=0, second_number=0,
+    operation="+", correct_answer=0, user_answer="", feedback="",
+    score=1, questions_answered=1,
+    problems=[MathProblem(3, 4, "+", 7, "7", True, 2)],
+    time_limit=60, start_time=0.0, question_started_at=0.0,
+    practice_mode="+"
+)).state.problems[0].was_correct, True)
+
+assert_equal(review(State(
+    current_page="results", name="Sam", first_number=0, second_number=0,
+    operation="-", correct_answer=0, user_answer="", feedback="",
+    score=0, questions_answered=1,
+    problems=[MathProblem(8, 3, "-", 5, "6", False, 4)],
+    time_limit=60, start_time=0.0, question_started_at=0.0,
+    practice_mode="-"
+)).state.problems[0].user_answer, "6")
+
+assert_equal(len(review(State(
+    current_page="results", name="Taylor", first_number=0, second_number=0,
+    operation="*", correct_answer=0, user_answer="", feedback="",
+    score=1, questions_answered=2,
+    problems=[
+        MathProblem(3, 4, "*", 12, "12", True, 2),
+        MathProblem(5, 2, "*", 10, "8", False, 3)
+    ],
+    time_limit=60, start_time=0.0, question_started_at=0.0,
+    practice_mode="*"
+)).state.problems), 2)
+
+# --------------------
+# Additional review tests
+# --------------------
+
+# Tests whether the review page preserves a correct answer.
+assert_equal(review(State(
+    current_page="results", name="Alex", first_number=0,
+    second_number=0, operation="+", correct_answer=0,
+    user_answer="", feedback="", score=1, questions_answered=1,
+    problems=[MathProblem(3, 4, "+", 7, "7", True, 2)],
+    time_limit=60, start_time=0.0, question_started_at=0.0,
+    practice_mode="+"
+)).state.problems[0].correct_answer, 7)
+
+# Tests whether the review page preserves the time taken.
+assert_equal(review(State(
+    current_page="results", name="Jordan", first_number=0,
+    second_number=0, operation="-", correct_answer=0,
+    user_answer="", feedback="", score=0, questions_answered=1,
+    problems=[MathProblem(8, 3, "-", 5, "6", False, 4)],
+    time_limit=60, start_time=0.0, question_started_at=0.0,
+    practice_mode="-"
+)).state.problems[0].time_taken, 4)
+
+# Tests whether the review page handles an empty problem list.
+assert_equal(len(review(State(
+    current_page="results", name="Morgan", first_number=0,
+    second_number=0, operation="+", correct_answer=0,
+    user_answer="", feedback="", score=0, questions_answered=0,
+    problems=[], time_limit=60, start_time=0.0,
+    question_started_at=0.0, practice_mode="+"
+)).state.problems), 0)
+
 
 start_server(initial_state)
