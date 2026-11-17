@@ -3,6 +3,8 @@ from dataclasses import dataclass
 from random import randint, choice
 from time import time
 
+set_website_style("7")
+
 @dataclass
 class MathProblem:
     first_number: int
